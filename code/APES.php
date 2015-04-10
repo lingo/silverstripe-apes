@@ -17,7 +17,7 @@ class APES extends DataExtension {
 	 * @var boolean
 	 * @config
 	 */
-	private static $mailchimp_unsubscribe_on_delete = false;
+	private static $mailchimp_unsubscribe_on_delete = true;
 
 	/**
 	 * Require double-opt in for users (check email)
@@ -45,13 +45,25 @@ class APES extends DataExtension {
 	private static $mailchimp_form_prefix = 'MailChimp';
 
 	/**
-	 * Get the list ID to use
-	 *
-	 * @return string
-	 */
-	public static function get_mailchimp_list_id() {
-		if(defined('SS_MAILCHIMP_LIST_ID')) return SS_MAILCHIMP_LIST_ID;
-		return $this->owner->config()->mailchimp_list_id;
+	*	This function takes a User ID and returns the mail chimp lists that are assosciated with it. 
+	* Customzied by Richard Matthews @ Haunt Digital. 
+	*/
+	public static function get_mailchimp_list_id($user_id) {
+		$m = DataObject::get_one('Member',"ID ='".$user_id."'");
+    $Groups = DataObject::get("Group");
+
+    if($Groups) {
+    	$ids = array();
+    	foreach($Groups as $Group) {
+	      if($m && $m->inGroup($Group->ID)) {   
+	    		if($Group->MailChimpListID) {
+	    			$ids[] .= $Group->MailChimpListID;
+	    		}
+	    	}	
+	    }
+    }
+
+		return $ids;
 	}
 
 	/**
@@ -167,7 +179,7 @@ class APES extends DataExtension {
 		try {
 			$api = SS_Mailchimp::instance();
 			$subscribe = $api->lists->subscribe(
-				static::get_mailchimp_list_id(),
+				static::get_mailchimp_list_id($this->owner->ID),
 				$this->getMailchimpRef(),
 				$mergeTags,
 				'html',
@@ -190,13 +202,20 @@ class APES extends DataExtension {
 	/**
 	 * Unsubscribe this user from mailchimp
 	 */
-	public function unsubscribeMailChimpUser() {
+	public function unsubscribeMailChimpUser($id) {
 		try {
-			$api = SS_Mailchimp::instance();
-			$api->lists->unsubscribe(
-				static::get_mailchimp_list_id(),
-				$this->getMailchimpRef()
-			);
+			$list_ids = static::get_mailchimp_list_id($id);
+			if($list_ids) {
+				foreach($list_ids as $l) {
+					$api = SS_Mailchimp::instance();
+						$api->lists->unsubscribe(
+						$l,
+						$this->getMailchimpRef()
+					);
+
+						error_log('I have been called successfully, unsub user from ' . $l);
+				}
+			}
 		} catch (Mailchimp_Error $exception) {
 			SS_Log::log($exception, SS_Log::ERR);
 		}
@@ -220,9 +239,9 @@ class APES extends DataExtension {
 
 	public function onBeforeDelete() {
 		// Unsubscribe this user before deleting
-		if ($this->owner->config()->mailchimp_unsubscribe_on_delete && $this->isSubscribed()) {
-			$this->unsubscribeMailChimpUser();
-		}
+		//if ($this->owner->config()->mailchimp_unsubscribe_on_delete && $this->isSubscribed()) {
+			$this->unsubscribeMailChimpUser($this->owner->ID);
+		//}
 	}
 
 	/**
@@ -272,7 +291,7 @@ class APES extends DataExtension {
 		try {
 			$groupData = SS_Mailchimp::instance()
 				->lists
-				->interestGroupings(static::get_mailchimp_list_id());
+				->interestGroupings(static::get_mailchimp_list_id($this->owner->ID));
 		} catch (Mailchimp_Error $exception) {
 			SS_Log::log($exception, SS_Log::ERR);
 			return array();
@@ -296,7 +315,7 @@ class APES extends DataExtension {
 		try {
 			$api = SS_Mailchimp::instance();
 			$result = $api->lists->memberInfo(
-				static::get_mailchimp_list_id(),
+				static::get_mailchimp_list_id($this->owner->ID),
 				array(
 					$this->getMailchimpRef()
 				)
