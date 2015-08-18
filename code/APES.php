@@ -2,7 +2,7 @@
 
 /**
  * Automated Provision for Email Services (APES)
- * 
+ *
  * When provided credentials and an array of Member fields to sync this will keep SilverStripe and
  * Mailchimp in sync if a user has opted in to recevie emails.
  *
@@ -45,8 +45,8 @@ class APES extends DataExtension {
 	private static $mailchimp_form_prefix = 'MailChimp';
 
 	/**
-	*	This function takes a User ID and returns the mail chimp lists that are assosciated with it. 
-	* Customzied by Richard Matthews @ Haunt Digital. 
+	*	This function takes a User ID and returns the mail chimp lists that are assosciated with it.
+	* Customzied by Richard Matthews @ Haunt Digital.
 	*/
 	public static function get_mailchimp_list_id($user_id) {
 		$m = DataObject::get_one('Member',"ID ='".$user_id."'");
@@ -55,11 +55,11 @@ class APES extends DataExtension {
     if($Groups) {
     	$ids = array();
     	foreach($Groups as $Group) {
-	      if($m && $m->inGroup($Group->ID)) {   
+	      if($m && $m->inGroup($Group->ID)) {
 	    		if($Group->MailChimpListID) {
 	    			$ids[] .= $Group->MailChimpListID;
 	    		}
-	    	}	
+	    	}
 	    }
     }
 
@@ -79,20 +79,10 @@ class APES extends DataExtension {
 		'Surname' => 'LNAME',
 		'Email' => 'EMAIL'
 	);
-	
+
 	private static $db = array(
 		'MailchimpID' => 'Varchar'
 	);
-
-	public function updateCMSFields(FieldList $fields) {
-		$fields->addFieldsToTab(
-			'Root.Mailchimp',
-			array(
-				ReadonlyField::create('MailchimpID', 'Mailchimp ID'),
-				ReadonlyField::create('ListStatus',  'List Status')
-			)
-		);
-	}
 
 	/**
 	 * Gets an array of data identifying this user with mailchimp
@@ -222,7 +212,7 @@ class APES extends DataExtension {
 	}
 
 	public function onBeforeWrite() {
-		
+
 		// Only update ID if this record has been changed
 		$changed = $this->owner->getChangedFields();
 		if (empty($changed) && $this->owner->exists()) {
@@ -234,7 +224,7 @@ class APES extends DataExtension {
 
 		// Send subscription update to mailchimp
 		$this->subscribeMailChimpUser();
-		
+
 	}
 
 	public function onBeforeDelete() {
