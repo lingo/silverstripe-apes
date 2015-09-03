@@ -59,6 +59,12 @@ class APES extends DataExtension {
 	 * @return string
 	*/
 	public static function get_mailchimp_list_id() {
+		$site = SiteConfig::current_site_config();
+		if ($site && $site->db('MailChimpListID')) {
+			if ($site->MailChimpListID) {
+				return $site->MailChimpListID;
+			}
+		}
 		if(defined('SS_MAILCHIMP_LIST_ID')) return SS_MAILCHIMP_LIST_ID;
 		return $this->owner->config()->mailchimp_list_id;
 	}
