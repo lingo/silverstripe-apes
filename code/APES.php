@@ -79,8 +79,19 @@ class APES extends DataExtension {
 	 */
 	private static $sync_member_fields = array(
 		'FirstName' => 'FNAME',
-		'Surname' => 'LNAME',
-		'Email' => 'EMAIL'
+		'Surname'   => 'LNAME',
+		'Email'     => 'EMAIL',
+		'Category.Name'  => 'CATEGORY',
+		'Address1'  => 'ADDRESS',
+		'Address2'  => 'ADDRESS2',
+		'Phone'     => 'PHONE',
+		'Status'    => 'CLIENTTYPE',
+		'Gender'    => 'TITLE',
+		'HowHeard'  => 'HOWHEARD',
+		'City'      => 'VILLE',
+		'Country'   => 'COUNTRY',
+		'Level'     => 'STATUS',
+		'Postcode'  => 'POSTCODE'
 	);
 
 	private static $db = array(
