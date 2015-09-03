@@ -177,8 +177,8 @@ class APES extends DataExtension {
 			: array();
 		foreach ($this->owner->config()->sync_member_fields as $field => $tag) {
 			$tagValue = null;
-			if ($this->owner->hasField($field)) {
-				$tagValue = $this->owner->relField($field);
+			if (($tagValue = $this->owner->relObject($field))) {
+				$tagValue = $tagValue->value;
 			} elseif ($this->owner->hasMethod($field)) {
 				$tagValue = $this->owner->{$field}();
 			} else {
