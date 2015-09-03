@@ -54,25 +54,13 @@ class APES extends DataExtension {
 	private static $mailchimp_form_prefix = 'MailChimp';
 
 	/**
-	*	This function takes a User ID and returns the mail chimp lists that are assosciated with it.
-	* Customzied by Richard Matthews @ Haunt Digital.
+	 * Get the list ID to use
+	 *
+	 * @return string
 	*/
-	public static function get_mailchimp_list_id($user_id) {
-		$m = DataObject::get_one('Member',"ID ='".$user_id."'");
-    $Groups = DataObject::get("Group");
-
-    if($Groups) {
-    	$ids = array();
-    	foreach($Groups as $Group) {
-	      if($m && $m->inGroup($Group->ID)) {
-	    		if($Group->MailChimpListID) {
-	    			$ids[] .= $Group->MailChimpListID;
-	    		}
-	    	}
-	    }
-    }
-
-		return $ids;
+	public static function get_mailchimp_list_id() {
+		if(defined('SS_MAILCHIMP_LIST_ID')) return SS_MAILCHIMP_LIST_ID;
+		return $this->owner->config()->mailchimp_list_id;
 	}
 
 	/**
@@ -164,7 +152,7 @@ class APES extends DataExtension {
 			? $memberInformation['merges']
 			: array();
 		foreach ($this->owner->config()->sync_member_fields as $field => $tag) {
-			$mergeTags[$tag] = $this->owner->$field;
+			$mergeTags[$tag] = $this->owner->{$field};
 		}
 
 		// Map get group format to set group format
@@ -178,7 +166,7 @@ class APES extends DataExtension {
 		try {
 			$api = SS_Mailchimp::instance();
 			$subscribe = $api->lists->subscribe(
-				static::get_mailchimp_list_id($this->owner->ID),
+				static::get_mailchimp_list_id(),
 				$this->getMailchimpRef(),
 				$mergeTags,
 				'html',
@@ -203,18 +191,11 @@ class APES extends DataExtension {
 	 */
 	public function unsubscribeMailChimpUser($id) {
 		try {
-			$list_ids = static::get_mailchimp_list_id($id);
-			if($list_ids) {
-				foreach($list_ids as $l) {
-					$api = SS_Mailchimp::instance();
-						$api->lists->unsubscribe(
-						$l,
-						$this->getMailchimpRef()
-					);
-
-						error_log('I have been called successfully, unsub user from ' . $l);
-				}
-			}
+			$api = SS_Mailchimp::instance();
+				$api->lists->unsubscribe(
+				static::get_mailchimp_list_id(),
+				$this->getMailchimpRef()
+			);
 		} catch (Mailchimp_Error $exception) {
 			SS_Log::log($exception, SS_Log::ERR);
 		}
@@ -305,7 +286,7 @@ class APES extends DataExtension {
 		try {
 			$groupData = SS_Mailchimp::instance()
 				->lists
-				->interestGroupings(static::get_mailchimp_list_id($this->owner->ID));
+				->interestGroupings(static::get_mailchimp_list_id());
 		} catch (Mailchimp_Error $exception) {
 			SS_Log::log($exception, SS_Log::ERR);
 			return array();
@@ -329,7 +310,7 @@ class APES extends DataExtension {
 		try {
 			$api = SS_Mailchimp::instance();
 			$result = $api->lists->memberInfo(
-				static::get_mailchimp_list_id($this->owner->ID),
+				static::get_mailchimp_list_id(),
 				array(
 					$this->getMailchimpRef()
 				)
