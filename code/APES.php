@@ -165,7 +165,15 @@ class APES extends DataExtension {
 			? $memberInformation['merges']
 			: array();
 		foreach ($this->owner->config()->sync_member_fields as $field => $tag) {
-			$mergeTags[$tag] = $this->owner->{$field};
+			$tagValue = null;
+			if ($this->owner->hasField($field)) {
+				$tagValue = $this->owner->relField($field);
+			} elseif ($this->owner->hasMethod($field)) {
+				$tagValue = $this->owner->{$field}();
+			} else {
+				$tagValue = $this->owner->$field;
+			}
+			$mergeTags[$tag] = $tagValue;
 		}
 
 		// Map get group format to set group format
