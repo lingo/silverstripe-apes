@@ -19,6 +19,15 @@ class APES extends DataExtension {
 	 */
 	private static $mailchimp_unsubscribe_on_delete = true;
 
+
+	/**
+	 * Subscribe users (unless they're already unsubscribed or pending)
+	 * when the user record is saved.
+	 *
+	 * @var boolean
+	 */
+	private static $mailchimp_subscribe_on_write = true;
+
 	/**
 	 * Require double-opt in for users (check email)
 	 *
@@ -211,7 +220,24 @@ class APES extends DataExtension {
 		}
 	}
 
+	/**
+	 * Subscribe this user unless they're already pending or have already
+	 * unsubscribed before.
+	 */
+	public function subscribeMailChimpIfNew() {
+		// Only update members which are subscribed
+		if($this->isPending() || $this->isUnsubscribed()) {
+			return;
+		}
+		// Send subscription update to mailchimp
+		$this->subscribeMailChimpUser();
+	}
+
+
 	public function onBeforeWrite() {
+		if (!$this->owner->config()->mailchimp_subscribe_on_write) {
+			return;
+		}
 
 		// Only update ID if this record has been changed
 		$changed = $this->owner->getChangedFields();
@@ -219,19 +245,17 @@ class APES extends DataExtension {
 			return;
 		}
 
-		// Only update members which are subscribed
-		if(!$this->isSubscribed()) return;
-
-		// Send subscription update to mailchimp
-		$this->subscribeMailChimpUser();
-
+		$this->subscribeMailChimpIfNew();
 	}
 
 	public function onBeforeDelete() {
+		if (!$this->owner->config()->mailchimp_unsubscribe_on_delete) {
+			return;
+		}
 		// Unsubscribe this user before deleting
-		//if ($this->owner->config()->mailchimp_unsubscribe_on_delete && $this->isSubscribed()) {
+		if ($this->isSubscribed()) {
 			$this->unsubscribeMailChimpUser($this->owner->ID);
-		//}
+		}
 	}
 
 	/**
