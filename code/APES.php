@@ -26,7 +26,7 @@ class APES extends DataExtension {
 	 *
 	 * @var boolean
 	 */
-	private static $mailchimp_subscribe_on_write = true;
+	private static $mailchimp_subscribe_on_write = false;
 
 	/**
 	 * Require double-opt in for users (check email)
