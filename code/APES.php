@@ -182,7 +182,7 @@ class APES extends DataExtension {
 			} elseif ($this->owner->hasMethod($field)) {
 				$tagValue = $this->owner->{$field}();
 			} else {
-				$tagValue = $this->owner->$field;
+				$tagValue = $this->owner->{$field};
 			}
 			$mergeTags[$tag] = $tagValue;
 		}
