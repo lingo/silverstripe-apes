@@ -81,6 +81,13 @@ class APES extends DataExtension {
 		'MailchimpID' => 'Varchar'
 	);
 
+	public function getMailchimpFields() {
+		return array(
+			ReadonlyField::create('MailchimpID', 'Mailchimp ID'),
+			ReadonlyField::create('ListStatus',  'List Status')
+		);
+	}
+
 	/**
 	 * Gets an array of data identifying this user with mailchimp
 	 *
