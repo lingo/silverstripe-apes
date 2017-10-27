@@ -314,8 +314,12 @@ class APES extends DataExtension {
 
 		try {
 			$api = SS_Mailchimp::instance();
+			$lists = self::get_mailchimp_list_id($this->owner->ID);
+			if (!is_array($lists) || !count($lists)) {
+				return $this->owner->mcdata = false;
+			}
 			$result = $api->lists->memberInfo(
-				static::get_mailchimp_list_id($this->owner->ID),
+				$lists,
 				array(
 					$this->getMailchimpRef()
 				)
