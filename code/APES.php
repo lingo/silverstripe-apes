@@ -49,19 +49,22 @@ class APES extends DataExtension {
 	* Customzied by Richard Matthews @ Haunt Digital. 
 	*/
 	public static function get_mailchimp_list_id($user_id) {
-		$m = DataObject::get_one('Member',"ID ='".$user_id."'");
-    $Groups = DataObject::get("Group");
+    	$ids    = array();
+		$m      = Member::get()->byID($user_id);
+		if (!$m) {
+			return $ids;
+		}
 
-    if($Groups) {
-    	$ids = array();
-    	foreach($Groups as $Group) {
-	      if($m && $m->inGroup($Group->ID)) {   
-	    		if($Group->MailChimpListID) {
-	    			$ids[] = $Group->MailChimpListID;
-	    		}
-	    	}	
+		$groups = $m->Groups()->filter(array(
+			'MailChimpListID:Not' => null,
+			'MailChimpListID:Not' => ''
+		));
+
+	    if($groups->Count()) {
+	    	foreach($groups as $group) {
+    			$ids[] = $group->MailChimpListID;
+		    }
 	    }
-    }
 
 		return $ids;
 	}
