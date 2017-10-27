@@ -57,7 +57,7 @@ class APES extends DataExtension {
     	foreach($Groups as $Group) {
 	      if($m && $m->inGroup($Group->ID)) {   
 	    		if($Group->MailChimpListID) {
-	    			$ids[] .= $Group->MailChimpListID;
+	    			$ids[] = $Group->MailChimpListID;
 	    		}
 	    	}	
 	    }
